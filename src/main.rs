@@ -1,6 +1,8 @@
 use druid::kurbo::PathEl;
 use druid::widget::prelude::*;
-use druid::widget::{Align, Button, Flex, Label, Padding, Radio, Slider, WidgetExt};
+use druid::widget::{
+    Align, Button, Flex, Image, ImageData, Label, Padding, Radio, Slider, WidgetExt,
+};
 use druid::{Affine, Point, Rect, TimerToken};
 use druid::{AppLauncher, Data, Lens, PlatformError, Widget, WindowDesc};
 use std::time::Duration;
@@ -17,6 +19,7 @@ struct Model {
 
 struct CanvasWidget {
     timer: TimerToken,
+    board_image: Image,
 }
 
 impl Widget<Model> for CanvasWidget {
@@ -93,10 +96,25 @@ impl Widget<Model> for CanvasWidget {
         ctx.stroke(&sin_wave[..], &env.get(druid::theme::PRIMARY_DARK), 2.0);
 
         ctx.restore().unwrap();
+
+        self.board_image.paint(ctx, data, env);
+    }
+}
+
+struct Resources {
+    board: ImageData,
+}
+
+impl Resources {
+    fn load() -> Self {
+        Resources {
+            board: ImageData::from_data(include_bytes!("../res/board.png")).unwrap(),
+        }
     }
 }
 
 fn build_ui() -> impl Widget<Model> {
+    let res = Resources::load();
     Padding::new(
         (10.0, 20.0),
         Flex::column()
@@ -125,6 +143,7 @@ fn build_ui() -> impl Widget<Model> {
             .with_flex_child(
                 CanvasWidget {
                     timer: TimerToken::INVALID,
+                    board_image: Image::new(res.board),
                 },
                 3.0,
             )
